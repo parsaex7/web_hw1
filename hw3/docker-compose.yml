@@ -1,0 +1,31 @@
+# httpbin is only on `inside`, which has no route out and no published port.
+# The proxy is on both networks, so the host can reach port 80 and the proxy
+# can still reach httpbin:8081.
+services:
+  httpbin:
+    image: ghcr.io/mccutchen/go-httpbin:2.22.0
+    environment:
+      PORT: "8081"
+    networks:
+      - inside
+
+  proxy:
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      ADDR: ":80"
+      UPSTREAM: http://httpbin:8081
+      JWT_SECRET: homework-demo-secret-do-not-use-in-prod
+      AUTH_USER: parsa
+      AUTH_PASS: letmein
+    depends_on:
+      - httpbin
+    networks:
+      - inside
+      - edge
+
+networks:
+  inside:
+    internal: true
+  edge:
